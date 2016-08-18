@@ -544,25 +544,60 @@ int8_t Modbus::poll( uint16_t *regs, uint8_t u8size ) {
   switch( au8Buffer[ FUNC ] ) {
   case MB_FC_READ_COILS:
   case MB_FC_READ_DISCRETE_INPUT:
+    #ifdef LOGGING
+      Serial.print("MODBUS> ");
+      Serial.print("MB_FC_READ_DISCRETE_INPUT");
+      Serial.println();
+    #endif
     return process_FC1( regs, u8size );
     break;
   case MB_FC_READ_INPUT_REGISTER:
   case MB_FC_READ_REGISTERS :
+    #ifdef LOGGING
+      Serial.print("MODBUS> ");
+      Serial.print("MB_FC_READ_REGISTERS");
+      Serial.println();
+    #endif
     return process_FC3( regs, u8size );
     break;
   case MB_FC_WRITE_COIL:
+    #ifdef LOGGING
+      Serial.print("MODBUS> ");
+      Serial.print("MB_FC_WRITE_COIL");
+      Serial.println();
+    #endif
     return process_FC5( regs, u8size );
     break;
   case MB_FC_WRITE_REGISTER :
+    #ifdef LOGGING
+      Serial.print("MODBUS> ");
+      Serial.print("MB_FC_WRITE_REGISTER");
+      Serial.println();
+    #endif
     return process_FC6( regs, u8size );
     break;
   case MB_FC_WRITE_MULTIPLE_COILS:
+    #ifdef LOGGING
+      Serial.print("MODBUS> ");
+      Serial.print("MB_FC_WRITE_MULTIPLE_COILS");
+      Serial.println();
+    #endif
     return process_FC15( regs, u8size );
     break;
   case MB_FC_WRITE_MULTIPLE_REGISTERS :
+    #ifdef LOGGING
+      Serial.print("MODBUS> ");
+      Serial.print("MB_FC_WRITE_MULTIPLE_REGISTERS");
+      Serial.println();
+    #endif
     return process_FC16( regs, u8size );
     break;
   default:
+    #ifdef LOGGING
+      Serial.print("MODBUS> ");
+      Serial.print("nothing to do in the au8 func");
+      Serial.println();
+    #endif
     break;
   }
   return i8state;

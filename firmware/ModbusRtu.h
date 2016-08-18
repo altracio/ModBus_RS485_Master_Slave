@@ -53,9 +53,9 @@
 #define word(h,l)	(uint16_t)((h << 8) + l)
 
 #if PLATFORM_ID == 0 // Core
- #error "*** You are building with the Core as a target ***"
+ #warning "*** You are building with the Core as a target ***"
 #elif PLATFORM_ID == 6 // Photon
- #error "*** You are building with the Photon as a target ***"
+ #warning "*** You are building with the Photon as a target ***"
 #endif
 
 /**
