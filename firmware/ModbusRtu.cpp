@@ -4,7 +4,7 @@
 #include "Serial2/Serial2.h"
 #include "application.h"
 
-// #define LOGGING // to see what is happening
+#define LOGGING // to see what is happening
 
 /* _____PUBLIC FUNCTIONS_____________________________________________________ */
 
