@@ -798,17 +798,41 @@ uint8_t Modbus::validateRequest() {
     u16regs = word( au8Buffer[ ADD_HI ], au8Buffer[ ADD_LO ]) / 16;
     u16regs += word( au8Buffer[ NB_HI ], au8Buffer[ NB_LO ]) /16;
     u8regs = (uint8_t) u16regs;
-    if (u8regs > u8regsize) return EXC_ADDR_RANGE;
+    if (u8regs > u8regsize) {
+      #ifdef LOGGING
+        Serial.print("MODBUS> error regs size: u8regs, u8regsize: ");
+        Serial.print(u8regs);
+        Serial.print(" ");
+        Serial.println(u8regsize);
+      #endif
+      return EXC_ADDR_RANGE;
+    }
     break;
   case MB_FC_WRITE_COIL:
     u16regs = word( au8Buffer[ ADD_HI ], au8Buffer[ ADD_LO ]) / 16;
     u8regs = (uint8_t) u16regs;
-    if (u8regs > u8regsize) return EXC_ADDR_RANGE;
+    if (u8regs > u8regsize) {
+      #ifdef LOGGING
+        Serial.print("MODBUS> error regs size: u8regs, u8regsize: ");
+        Serial.print(u8regs);
+        Serial.print(" ");
+        Serial.println(u8regsize);
+      #endif
+      return EXC_ADDR_RANGE;
+    }
     break;
   case MB_FC_WRITE_REGISTER :
     u16regs = word( au8Buffer[ ADD_HI ], au8Buffer[ ADD_LO ]);
     u8regs = (uint8_t) u16regs;
-    if (u8regs > u8regsize) return EXC_ADDR_RANGE;
+    if (u8regs > u8regsize) {
+      #ifdef LOGGING
+        Serial.print("MODBUS> error regs size: u8regs, u8regsize: ");
+        Serial.print(u8regs);
+        Serial.print(" ");
+        Serial.println(u8regsize);
+      #endif
+      return EXC_ADDR_RANGE;
+    }
     break;
   case MB_FC_READ_REGISTERS :
   case MB_FC_READ_INPUT_REGISTER :
@@ -816,7 +840,15 @@ uint8_t Modbus::validateRequest() {
     u16regs = word( au8Buffer[ ADD_HI ], au8Buffer[ ADD_LO ]);
     u16regs += word( au8Buffer[ NB_HI ], au8Buffer[ NB_LO ]);
     u8regs = (uint8_t) u16regs;
-    if (u8regs > u8regsize) return EXC_ADDR_RANGE;
+    if (u8regs > u8regsize) {
+      #ifdef LOGGING
+        Serial.print("MODBUS> error regs size: u8regs, u8regsize: ");
+        Serial.print(u8regs);
+        Serial.print(" ");
+        Serial.println(u8regsize);
+      #endif
+      return EXC_ADDR_RANGE;
+    }
     break;
   }
   return 0; // OK, no exception code thrown
