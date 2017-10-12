@@ -549,6 +549,12 @@ int8_t Modbus::poll( uint16_t *regs, uint8_t u8size ) {
       Serial.print("MB_FC_READ_DISCRETE_INPUT");
       Serial.println();
     #endif
+    #ifdef DEBUG_LED
+      pinMode(D7, OUTPUT);
+      digitalWrite(D7, HIGH);
+      delay(20);
+      digitalWrite(D7, LOW);
+    #endif
     return process_FC1( regs, u8size );
     break;
   case MB_FC_READ_INPUT_REGISTER:
@@ -557,6 +563,12 @@ int8_t Modbus::poll( uint16_t *regs, uint8_t u8size ) {
       Serial.print("MODBUS> ");
       Serial.print("MB_FC_READ_REGISTERS");
       Serial.println();
+    #endif
+    #ifdef DEBUG_LED
+      pinMode(D7, OUTPUT);
+      digitalWrite(D7, HIGH);
+      delay(20);
+      digitalWrite(D7, LOW);
     #endif
     return process_FC3( regs, u8size );
     break;
@@ -573,6 +585,12 @@ int8_t Modbus::poll( uint16_t *regs, uint8_t u8size ) {
       Serial.print("MODBUS> ");
       Serial.print("MB_FC_WRITE_REGISTER");
       Serial.println();
+    #endif
+    #ifdef DEBUG_LED
+      pinMode(D7, OUTPUT);
+      digitalWrite(D7, HIGH);
+      delay(20);
+      digitalWrite(D7, LOW);
     #endif
     return process_FC6( regs, u8size );
     break;
@@ -600,6 +618,7 @@ int8_t Modbus::poll( uint16_t *regs, uint8_t u8size ) {
     #endif
     break;
   }
+
   return i8state;
 }
 

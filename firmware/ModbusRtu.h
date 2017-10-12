@@ -1,6 +1,8 @@
 #ifndef MODBUS_H
 #define MODBUS_H
 
+// #define DEBUG_LED
+
 /**
  * @file 		ModbusRtu.h
  * @version     1.20
