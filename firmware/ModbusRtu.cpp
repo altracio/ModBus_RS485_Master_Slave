@@ -245,6 +245,8 @@ uint8_t Modbus::getLastError() {
  * @todo finish function 15
  */
 int8_t Modbus::query( modbus_t telegram ) {
+  // empty rx buffer
+  while(port->available()) { port->read(); }
   #ifdef LOGGING
     Serial.print("MODBUS> Query");
     Serial.println();
