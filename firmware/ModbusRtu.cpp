@@ -5,6 +5,12 @@
 #include "application.h"
 
 // #define LOGGING // to see what is happening
+// create logging buckets for temp
+#ifdef DEBUG_LOG
+  Logger logModbusRtu("rtu");
+#else
+  Logger logModbusRtu("RTU");  
+#endif
 
 /* _____PUBLIC FUNCTIONS_____________________________________________________ */
 
@@ -374,6 +380,7 @@ int8_t Modbus::poll() {
     u8state = COM_IDLE;
     u8lastError = NO_REPLY;
     u16errCnt++;
+    logModbusRtu.warn("NORPLY");
     return 0;
   }
 
@@ -393,6 +400,7 @@ int8_t Modbus::poll() {
   if (i8state < 7) {
     u8state = COM_IDLE;
     u16errCnt++;
+    logModbusRtu.warn("i8s%i", i8state);
     return i8state;
   }
 
@@ -672,6 +680,7 @@ int8_t Modbus::getRxBuffer() {
       Serial.print("MODBUS> ERR_BUFF_OVERFLOW");
       Serial.println();
     #endif
+    logModbusRtu.warn("BUFOVER");
     return ERR_BUFF_OVERFLOW;
   }
   #ifdef LOGGING
@@ -895,6 +904,7 @@ uint8_t Modbus::validateAnswer() {
       Serial.print("validateAnswer: NO_REPLY");
       Serial.println();
     #endif
+      logModbusRtu.warn("VALNORPLY");
     return NO_REPLY;
   }
 
@@ -906,6 +916,7 @@ uint8_t Modbus::validateAnswer() {
       Serial.print("validateAnswer: ERR_EXCEPTION");
       Serial.println();
     #endif
+      logModbusRtu.warn("VALERREX");
     return ERR_EXCEPTION;
   }
 
@@ -929,6 +940,7 @@ uint8_t Modbus::validateAnswer() {
       Serial.print("validateAnswer: EXC_FUNC_CODE");
       Serial.println();
     #endif
+      logModbusRtu.warn("VALEXCFUNC");
     return EXC_FUNC_CODE;
   }
 
