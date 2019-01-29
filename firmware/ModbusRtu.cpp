@@ -77,7 +77,7 @@ Modbus::Modbus(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin, uint8_t u8rxenp
  * @param config  data frame settings (data length, parity and stop bits)
  * @ingroup setup
  */
-void Modbus::begin(long u32speed) {
+void Modbus::begin(long u32speed, long configuration) {
 
   switch( u8serno ) {
   case 1:
@@ -95,7 +95,7 @@ void Modbus::begin(long u32speed) {
   }
 
   // port->begin(u32speed, u8config);
-  port->begin(u32speed);
+  port->begin(u32speed, configuration);
   if (u8txenpin > 1 && u8rxenpin > 1) { // pin 0 & pin 1 are reserved for RX/TX
     // return RS485 transceiver to transmit mode
     pinMode(u8txenpin, OUTPUT);
@@ -106,20 +106,6 @@ void Modbus::begin(long u32speed) {
   port->flush();
   u8lastRec = u8BufferSize = 0;
   u16InCnt = u16OutCnt = u16errCnt = 0;
-}
-
-/**
- * @brief
- * Initialize default class object.
- *
- * Sets up the serial port using 19200 baud.
- * Call once class has been instantiated, typically within setup().
- *
- * @overload Modbus::begin(uint16_t u16BaudRate)
- * @ingroup setup
- */
-void Modbus::begin() {
-  begin(19200);
 }
 
 /**
@@ -428,6 +414,8 @@ int8_t Modbus::poll() {
       #endif
       break;
     case MB_FC_READ_INPUT_REGISTER:
+      // call get_FC3 to transfer the incoming message to au16regs buffer
+      get_FC3( );
       #ifdef LOGGING
         Serial.print("MODBUS> ");
         Serial.print("MB_FC_READ_INPUT_REGISTER");
