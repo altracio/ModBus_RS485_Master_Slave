@@ -647,7 +647,10 @@ int8_t Modbus::getRxBuffer() {
     #endif
     u8BufferSize ++;
 
-    if (u8BufferSize >= MAX_BUFFER) bBuffOverflow = true;
+    if (u8BufferSize >= MAX_BUFFER) {
+      bBuffOverflow = true;
+      break;
+    };
   }
   #ifdef LOGGING
     Serial.println();
