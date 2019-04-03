@@ -152,7 +152,7 @@ const unsigned char fctsupported[] = {
 };
 
 #define T35  5
-#define  MAX_BUFFER  64	//!< maximum size for the communication buffer in bytes
+#define  MAX_BUFFER  255	//!< maximum size for the communication buffer in bytes
 
 #define RXEN 0
 #define TXEN 1
@@ -208,8 +208,7 @@ public:
   Modbus(uint8_t u8id, uint8_t u8serno);
   Modbus(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin);
   Modbus(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin, uint8_t u8rxenpin);
-  void begin(long u32speed);
-  void begin();
+  void begin(long u32speed = 19200, long configuration = SERIAL_8N1);
   void setTimeOut( uint16_t u16timeout); //!<write communication watch-dog timer
   uint16_t getTimeOut(); //!<get communication watch-dog timer value
   boolean getTimeOutState(); //!<get communication watch-dog timer state
