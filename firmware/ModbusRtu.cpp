@@ -390,7 +390,10 @@ int8_t Modbus::poll() {
   // transfer Serial buffer frame to auBuffer
   u8lastRec = 0;
   int8_t i8state = getRxBuffer();
-  if (i8state < 7) {
+  if (
+    (i8state < 7 && au8Buffer[ FUNC ] != MB_FC_READ_COILS) ||
+    (i8state < 6 && au8Buffer[ FUNC ] == MB_FC_READ_COILS)
+  ) {
     u8state = COM_IDLE;
     u16errCnt++;
     return i8state;
@@ -412,6 +415,7 @@ int8_t Modbus::poll() {
   // process answer
   switch( au8Buffer[ FUNC ] ) {
     case MB_FC_READ_COILS:
+      get_FC1( );
       #ifdef LOGGING
         Serial.print("MODBUS> ");
         Serial.print("MB_FC_READ_COILS");
@@ -963,15 +967,17 @@ void Modbus::buildException( uint8_t u8exception ) {
  * TODO: finish its implementation
  */
 void Modbus::get_FC1() {
-  //uint8_t u8byte, i;
-  //u8byte = 0;
+  uint8_t u8byte, i;
+  u8byte = 3;
 
-  //  for (i=0; i< au8Buffer[ 2 ] /2; i++) {
-  //    au16regs[ i ] = word(
-  //    au8Buffer[ u8byte ],
-  //    au8Buffer[ u8byte +1 ]);
-  //    u8byte += 2;
-  //  }
+  #ifdef LOGGING
+    Serial.print("MODBUS> FC1: ");
+  #endif
+    // only implements reading one byte at a time
+  au16regs[0] = au8Buffer[u8byte];
+  #ifdef LOGGING
+    Serial.println();
+  #endif
 }
 
 /**
