@@ -719,6 +719,7 @@ void Modbus::sendTxBuffer() {
       Serial.println();
     #endif
     rxTxMode(TXEN);
+    delayMicroseconds(100);
   }
 
   // transfer buffer to serial line
