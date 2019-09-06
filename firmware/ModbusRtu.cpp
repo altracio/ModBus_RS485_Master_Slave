@@ -4,7 +4,7 @@
 #include "Serial2/Serial2.h"
 #include "application.h"
 
-// #define LOGGING // to see what is happening
+#define LOGGING // to see what is happening
 // create logging buckets for temp
 #ifdef DEBUG_LOG
   Logger logModbusRtu("rtu");
@@ -499,14 +499,14 @@ int8_t Modbus::poll() {
  * After a successful frame between the Master and the Slave, the time-out timer is reset.
  *
  * @param *regs  register table for communication exchange
- * @param u8size  size of the register table
+ * @param u16size  size of the register table
  * @return 0 if no query, 1..4 if communication error, >4 if correct query processed
  * @ingroup loop
  */
-int8_t Modbus::poll( uint16_t *regs, uint8_t u8size ) {
+int8_t Modbus::poll( uint16_t *regs, uint16_t u16size ) {
 
   au16regs = regs;
-  u8regsize = u8size;
+  u16regsize = u16size;
 
   // check if there is any incoming frame
   uint8_t u8current = port->available();
@@ -557,7 +557,7 @@ int8_t Modbus::poll( uint16_t *regs, uint8_t u8size ) {
       delay(20);
       digitalWrite(D7, LOW);
     #endif
-    return process_FC1( regs, u8size );
+    return process_FC1( regs, u16size );
     break;
   case MB_FC_READ_INPUT_REGISTER:
   case MB_FC_READ_REGISTERS :
@@ -572,7 +572,7 @@ int8_t Modbus::poll( uint16_t *regs, uint8_t u8size ) {
       delay(20);
       digitalWrite(D7, LOW);
     #endif
-    return process_FC3( regs, u8size );
+    return process_FC3( regs, u16size );
     break;
   case MB_FC_WRITE_COIL:
     #ifdef LOGGING
@@ -580,7 +580,7 @@ int8_t Modbus::poll( uint16_t *regs, uint8_t u8size ) {
       Serial.print("MB_FC_WRITE_COIL");
       Serial.println();
     #endif
-    return process_FC5( regs, u8size );
+    return process_FC5( regs, u16size );
     break;
   case MB_FC_WRITE_REGISTER :
     #ifdef LOGGING
@@ -594,7 +594,7 @@ int8_t Modbus::poll( uint16_t *regs, uint8_t u8size ) {
       delay(20);
       digitalWrite(D7, LOW);
     #endif
-    return process_FC6( regs, u8size );
+    return process_FC6( regs, u16size );
     break;
   case MB_FC_WRITE_MULTIPLE_COILS:
     #ifdef LOGGING
@@ -602,7 +602,7 @@ int8_t Modbus::poll( uint16_t *regs, uint8_t u8size ) {
       Serial.print("MB_FC_WRITE_MULTIPLE_COILS");
       Serial.println();
     #endif
-    return process_FC15( regs, u8size );
+    return process_FC15( regs, u16size );
     break;
   case MB_FC_WRITE_MULTIPLE_REGISTERS :
     #ifdef LOGGING
@@ -610,7 +610,7 @@ int8_t Modbus::poll( uint16_t *regs, uint8_t u8size ) {
       Serial.print("MB_FC_WRITE_MULTIPLE_REGISTERS");
       Serial.println();
     #endif
-    return process_FC16( regs, u8size );
+    return process_FC16( regs, u16size );
     break;
   default:
     #ifdef LOGGING
@@ -816,46 +816,42 @@ uint8_t Modbus::validateRequest() {
 
   // check start address & nb range
   uint16_t u16regs = 0;
-  uint8_t u8regs;
   switch ( au8Buffer[ FUNC ] ) {
   case MB_FC_READ_COILS:
   case MB_FC_READ_DISCRETE_INPUT:
   case MB_FC_WRITE_MULTIPLE_COILS:
     u16regs = word( au8Buffer[ ADD_HI ], au8Buffer[ ADD_LO ]) / 16;
     u16regs += word( au8Buffer[ NB_HI ], au8Buffer[ NB_LO ]) /16;
-    u8regs = (uint8_t) u16regs;
-    if (u8regs > u8regsize) {
+    if (u16regs > u16regsize) {
       #ifdef LOGGING
-        Serial.print("MODBUS> error regs size: u8regs, u8regsize: ");
-        Serial.print(u8regs);
+        Serial.print("MODBUS> error regs size: u16regs, u16regsize: ");
+        Serial.print(u16regs);
         Serial.print(" ");
-        Serial.println(u8regsize);
+        Serial.println(u16regsize);
       #endif
       return EXC_ADDR_RANGE;
     }
     break;
   case MB_FC_WRITE_COIL:
     u16regs = word( au8Buffer[ ADD_HI ], au8Buffer[ ADD_LO ]) / 16;
-    u8regs = (uint8_t) u16regs;
-    if (u8regs > u8regsize) {
+    if (u16regs > u16regsize) {
       #ifdef LOGGING
-        Serial.print("MODBUS> error regs size: u8regs, u8regsize: ");
-        Serial.print(u8regs);
+        Serial.print("MODBUS> error regs size: u16regs, u16regsize: ");
+        Serial.print(u16regs);
         Serial.print(" ");
-        Serial.println(u8regsize);
+        Serial.println(u16regsize);
       #endif
       return EXC_ADDR_RANGE;
     }
     break;
   case MB_FC_WRITE_REGISTER :
     u16regs = word( au8Buffer[ ADD_HI ], au8Buffer[ ADD_LO ]);
-    u8regs = (uint8_t) u16regs;
-    if (u8regs > u8regsize) {
+    if (u16regs > u16regsize) {
       #ifdef LOGGING
-        Serial.print("MODBUS> error regs size: u8regs, u8regsize: ");
-        Serial.print(u8regs);
+        Serial.print("MODBUS> error regs size: u16regs, u16regsize: ");
+        Serial.print(u16regs);
         Serial.print(" ");
-        Serial.println(u8regsize);
+        Serial.println(u16regsize);
       #endif
       return EXC_ADDR_RANGE;
     }
@@ -865,13 +861,12 @@ uint8_t Modbus::validateRequest() {
   case MB_FC_WRITE_MULTIPLE_REGISTERS :
     u16regs = word( au8Buffer[ ADD_HI ], au8Buffer[ ADD_LO ]);
     u16regs += word( au8Buffer[ NB_HI ], au8Buffer[ NB_LO ]);
-    u8regs = (uint8_t) u16regs;
-    if (u8regs > u8regsize) {
+    if (u16regs > u16regsize) {
       #ifdef LOGGING
-        Serial.print("MODBUS> error regs size: u8regs, u8regsize: ");
-        Serial.print(u8regs);
+        Serial.print("MODBUS> error regs size: u16regs, u16regsize: ");
+        Serial.print(u16regs);
         Serial.print(" ");
-        Serial.println(u8regsize);
+        Serial.println(u16regsize);
       #endif
       return EXC_ADDR_RANGE;
     }
@@ -1026,7 +1021,7 @@ void Modbus::get_FC3() {
  * @return u8BufferSize Response to master length
  * @ingroup discrete
  */
-int8_t Modbus::process_FC1( uint16_t *regs, uint8_t u8size ) {
+int8_t Modbus::process_FC1( uint16_t *regs, uint16_t u16size ) {
   uint8_t u8currentRegister, u8currentBit, u8bytesno, u8bitsno;
   uint8_t u8CopyBufferSize;
   uint16_t u16currentCoil, u16coil;
@@ -1076,17 +1071,19 @@ int8_t Modbus::process_FC1( uint16_t *regs, uint8_t u8size ) {
  * @return u8BufferSize Response to master length
  * @ingroup register
  */
-int8_t Modbus::process_FC3( uint16_t *regs, uint8_t u8size ) {
+int8_t Modbus::process_FC3( uint16_t *regs, uint16_t u16size ) {
 
-  uint8_t u8StartAdd = word( au8Buffer[ ADD_HI ], au8Buffer[ ADD_LO ] );
-  uint8_t u8regsno = word( au8Buffer[ NB_HI ], au8Buffer[ NB_LO ] );
+  uint16_t u16StartAdd = word( au8Buffer[ ADD_HI ], au8Buffer[ ADD_LO ] );
+  uint16_t u16regsno = word( au8Buffer[ NB_HI ], au8Buffer[ NB_LO ] );
   uint8_t u8CopyBufferSize;
-  uint8_t i;
+  uint16_t i;
 
-  au8Buffer[ 2 ]       = u8regsno * 2;
+  Serial.printlnf(" %u %u %u %u", u16StartAdd, u16regsno, u8CopyBufferSize, i);
+
+  au8Buffer[ 2 ]       = u16regsno * 2;
   u8BufferSize         = 3;
 
-  for (i = u8StartAdd; i < u8StartAdd + u8regsno; i++) {
+  for (i = u16StartAdd; i < u16StartAdd + u16regsno; i++) {
     au8Buffer[ u8BufferSize ] = highByte(regs[i]);
     u8BufferSize++;
     au8Buffer[ u8BufferSize ] = lowByte(regs[i]);
@@ -1106,7 +1103,7 @@ int8_t Modbus::process_FC3( uint16_t *regs, uint8_t u8size ) {
  * @return u8BufferSize Response to master length
  * @ingroup discrete
  */
-int8_t Modbus::process_FC5( uint16_t *regs, uint8_t u8size ) {
+int8_t Modbus::process_FC5( uint16_t *regs, uint16_t u16size ) {
   uint8_t u8currentRegister, u8currentBit;
   uint8_t u8CopyBufferSize;
   uint16_t u16coil = word( au8Buffer[ ADD_HI ], au8Buffer[ ADD_LO ] );
@@ -1138,7 +1135,7 @@ int8_t Modbus::process_FC5( uint16_t *regs, uint8_t u8size ) {
  * @return u8BufferSize Response to master length
  * @ingroup register
  */
-int8_t Modbus::process_FC6( uint16_t *regs, uint8_t u8size ) {
+int8_t Modbus::process_FC6( uint16_t *regs, uint16_t u16size ) {
 
   uint8_t u8add = word( au8Buffer[ ADD_HI ], au8Buffer[ ADD_LO ] );
   uint8_t u8CopyBufferSize;
@@ -1163,7 +1160,7 @@ int8_t Modbus::process_FC6( uint16_t *regs, uint8_t u8size ) {
  * @return u8BufferSize Response to master length
  * @ingroup discrete
  */
-int8_t Modbus::process_FC15( uint16_t *regs, uint8_t u8size ) {
+int8_t Modbus::process_FC15( uint16_t *regs, uint16_t u16size ) {
   uint8_t u8currentRegister, u8currentBit, u8frameByte, u8bitsno;
   uint8_t u8CopyBufferSize;
   uint16_t u16currentCoil, u16coil;
@@ -1216,12 +1213,12 @@ int8_t Modbus::process_FC15( uint16_t *regs, uint8_t u8size ) {
  * @return u8BufferSize Response to master length
  * @ingroup register
  */
-int8_t Modbus::process_FC16( uint16_t *regs, uint8_t u8size ) {
+int8_t Modbus::process_FC16( uint16_t *regs, uint16_t u16size ) {
   uint8_t u8func = au8Buffer[ FUNC ];  // get the original FUNC code
-  uint8_t u8StartAdd = au8Buffer[ ADD_HI ] << 8 | au8Buffer[ ADD_LO ];
+  uint16_t u16StartAdd = au8Buffer[ ADD_HI ] << 8 | au8Buffer[ ADD_LO ];
   uint8_t u8regsno = au8Buffer[ NB_HI ] << 8 | au8Buffer[ NB_LO ];
   uint8_t u8CopyBufferSize;
-  uint8_t i;
+  uint16_t i;
   uint16_t temp;
 
   // build header
@@ -1235,7 +1232,7 @@ int8_t Modbus::process_FC16( uint16_t *regs, uint8_t u8size ) {
     au8Buffer[ (BYTE_CNT + 1) + i * 2 ],
     au8Buffer[ (BYTE_CNT + 2) + i * 2 ]);
 
-    regs[ u8StartAdd + i ] = temp;
+    regs[ u16StartAdd + i ] = temp;
   }
   u8CopyBufferSize = u8BufferSize +2;
   sendTxBuffer();

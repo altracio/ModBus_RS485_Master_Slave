@@ -183,7 +183,7 @@ private:
   uint16_t u16InCnt, u16OutCnt, u16errCnt;
   uint16_t u16timeOut;
   uint32_t u32time, u32timeOut;
-  uint8_t u8regsize;
+  uint16_t u16regsize;
 
   void init(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin, uint8_t u8rxenpin);
   void sendTxBuffer();
@@ -193,12 +193,12 @@ private:
   uint8_t validateRequest();
   void get_FC1();
   void get_FC3();
-  int8_t process_FC1( uint16_t *regs, uint8_t u8size );
-  int8_t process_FC3( uint16_t *regs, uint8_t u8size );
-  int8_t process_FC5( uint16_t *regs, uint8_t u8size );
-  int8_t process_FC6( uint16_t *regs, uint8_t u8size );
-  int8_t process_FC15( uint16_t *regs, uint8_t u8size );
-  int8_t process_FC16( uint16_t *regs, uint8_t u8size );
+  int8_t process_FC1( uint16_t *regs, uint16_t u16size );
+  int8_t process_FC3( uint16_t *regs, uint16_t u16size );
+  int8_t process_FC5( uint16_t *regs, uint16_t u16size );
+  int8_t process_FC6( uint16_t *regs, uint16_t u16size );
+  int8_t process_FC15( uint16_t *regs, uint16_t u16size );
+  int8_t process_FC16( uint16_t *regs, uint16_t u16size );
   void buildException( uint8_t u8exception ); // build exception message
 
   void rxTxMode( uint8_t mode ); // takes a 0 or 1 for low or high
@@ -214,7 +214,7 @@ public:
   boolean getTimeOutState(); //!<get communication watch-dog timer state
   int8_t query( modbus_t telegram ); //!<only for master
   int8_t poll(); //!<cyclic poll for master
-  int8_t poll( uint16_t *regs, uint8_t u8size ); //!<cyclic poll for slave
+  int8_t poll( uint16_t *regs, uint16_t u16size ); //!<cyclic poll for slave
   uint16_t getInCnt(); //!<number of incoming messages
   uint16_t getOutCnt(); //!<number of outcoming messages
   uint16_t getErrCnt(); //!<error counter
