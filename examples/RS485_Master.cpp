@@ -39,7 +39,7 @@ uint8_t u8query; //!< pointer to message query
  *        Modbus master(0, 1, TXEN_PIN);
  */
 #define TXEN_PIN A2
-#define RXEN_PIN DAC
+#define RXEN_PIN A3
 // Modbus master();                            // initiaization of master on serial 0
 // Modbus master(0, 1);                        // initiaization using no TXEN or RXEN control
 // Modbus master(0, 1, TXEN_PIN);              // initiaization using only TXEN control

@@ -165,11 +165,7 @@ const unsigned char fctsupported[] = {
  */
 class Modbus {
 private:
-#if (PLATFORM_ID == 0)
   USARTSerial *port; //!< Pointer to Serial class object
-#else
-  USARTSerial *port; //!< Pointer to Serial class object
-#endif
   uint8_t u8id; //!< 0=master, 1..247=slave number
   uint8_t u8serno; //!< serial port: 0-Serial, 1..3-Serial1..Serial3
   uint8_t u8txenpin; //!< flow control pin: 0=USB or RS-232 mode, >0=RS-485 mode
@@ -185,7 +181,6 @@ private:
   uint32_t u32time, u32timeOut;
   uint16_t u16regsize;
 
-  void init(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin, uint8_t u8rxenpin);
   void sendTxBuffer();
   int8_t getRxBuffer();
   uint16_t calcCRC(uint8_t u8length);
@@ -205,9 +200,6 @@ private:
 
 public:
   Modbus();
-  Modbus(uint8_t u8id, uint8_t u8serno);
-  Modbus(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin);
-  Modbus(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin, uint8_t u8rxenpin);
   void begin(long u32speed = 19200, long configuration = SERIAL_8N1);
   void setTimeOut( uint16_t u16timeout); //!<write communication watch-dog timer
   uint16_t getTimeOut(); //!<get communication watch-dog timer value
