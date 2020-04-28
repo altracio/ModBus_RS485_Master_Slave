@@ -1255,3 +1255,35 @@ void Modbus::rxTxMode( uint8_t mode ) {
   }
   return;
 };
+
+bool Modbus::selfTest() {
+  Modbus::rxTxMode(RXEN);
+  while (port->available())
+    port->read();
+
+  digitalWrite(u8txenpin, HIGH);
+  port->print("ALTRAC");
+  delay(10);
+  bool result = true;
+  Serial.print(port->peek());
+  if (port->read() != 'A')
+    result = false;
+  Serial.print(port->peek());
+  if (port->read() != 'L')
+    result = false;
+  Serial.print(port->peek());
+  if (port->read() != 'T')
+    result = false;
+  Serial.print(port->peek());
+  if (port->read() != 'R')
+    result = false;
+  Serial.print(port->peek());
+  if (port->read() != 'A')
+    result = false;
+  Serial.print(port->peek());
+  if (port->read() != 'C')
+    result = false;
+
+  // Modbus::rxTxMode(RXEN);
+  return result;
+}

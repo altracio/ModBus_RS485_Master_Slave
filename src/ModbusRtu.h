@@ -223,6 +223,8 @@ public:
   uint8_t getLastError(); //!<get last error message
   void setID( uint8_t u8id ); //!<write new ID for the slave
   void end(); //!<finish any communication and release serial communication port
+
+  bool selfTest();
 };
 
 #endif
