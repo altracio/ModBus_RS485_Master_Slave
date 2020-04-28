@@ -90,10 +90,6 @@ void Modbus::begin(long u32speed, long configuration) {
     port = &Serial1;
     break;
 
-  case 2:
-    port = &Serial2;
-    break;
-
   case 0:
   default:
     port = &Serial1;
