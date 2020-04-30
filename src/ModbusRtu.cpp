@@ -1191,6 +1191,7 @@ int8_t Modbus::process_FC15( uint16_t *regs, uint16_t u16size ) {
       u8bitsno = 0;
       u8frameByte++;
     }
+    
   }
 
   // send outcoming message
@@ -1261,26 +1262,29 @@ bool Modbus::selfTest() {
   while (port->available())
     port->read();
 
-  digitalWrite(u8txenpin, HIGH);
+  // digitalWrite(u8txenpin, HIGH);
+  Modbus::rxTxMode(TXEN);
   port->print("ALTRAC");
-  delay(10);
+  port->flush();
+  Modbus::rxTxMode(RXEN);
+  delay(100);
   bool result = true;
-  Serial.print(port->peek());
+  Serial.print((char)port->peek());
   if (port->read() != 'A')
     result = false;
-  Serial.print(port->peek());
+  Serial.print((char)port->peek());
   if (port->read() != 'L')
     result = false;
-  Serial.print(port->peek());
+  Serial.print((char)port->peek());
   if (port->read() != 'T')
     result = false;
-  Serial.print(port->peek());
+  Serial.print((char)port->peek());
   if (port->read() != 'R')
     result = false;
-  Serial.print(port->peek());
+  Serial.print((char)port->peek());
   if (port->read() != 'A')
     result = false;
-  Serial.print(port->peek());
+  Serial.print((char)port->peek());
   if (port->read() != 'C')
     result = false;
 

@@ -201,8 +201,6 @@ private:
   int8_t process_FC16( uint16_t *regs, uint16_t u16size );
   void buildException( uint8_t u8exception ); // build exception message
 
-  void rxTxMode( uint8_t mode ); // takes a 0 or 1 for low or high
-
 public:
   Modbus();
   Modbus(uint8_t u8id, uint8_t u8serno);
@@ -223,6 +221,8 @@ public:
   uint8_t getLastError(); //!<get last error message
   void setID( uint8_t u8id ); //!<write new ID for the slave
   void end(); //!<finish any communication and release serial communication port
+
+  void rxTxMode(uint8_t mode); // takes a 0 or 1 for low or high
 
   bool selfTest();
 };
