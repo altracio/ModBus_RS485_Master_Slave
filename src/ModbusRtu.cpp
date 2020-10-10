@@ -3,14 +3,13 @@
 #include "ModbusRtu.h"
 #include "Serial2/Serial2.h"
 #include "application.h"
+#include "PinControl.h"
 
-// #define LOGGING // to see what is happening
+extern PinControl pins;
+
+#define LOGGING // to see what is happening
 // create logging buckets for temp
-#ifdef DEBUG_LOG
-  Logger logModbusRtu("rtu");
-#else
-  Logger logModbusRtu("RTU");  
-#endif
+Logger logModbusRtu("lib.rtu");
 
 /* _____PUBLIC FUNCTIONS_____________________________________________________ */
 
@@ -21,54 +20,9 @@
  * @ingroup setup
  */
 Modbus::Modbus() {
-  init(0, 0, 0, 0);
-}
-
-/**
- * @brief
- * Full constructor for a Master/Slave through USB/RS232C
- *
- * @param u8id   node address 0=master, 1..247=slave
- * @param u8serno  serial port used 0..3
- * @ingroup setup
- * @overload Modbus::Modbus(uint8_t u8id, uint8_t u8serno)
- * @overload Modbus::Modbus()
- */
-Modbus::Modbus(uint8_t u8id, uint8_t u8serno) {
-  init(u8id, u8serno, 0, 0);
-}
-
-/**
- * @brief
- * Full constructor for a Master/Slave through USB/RS232C/RS485
- * It needs a pin for flow control only for RS485 mode
- *
- * @param u8id   node address 0=master, 1..247=slave
- * @param u8serno  serial port used 0..3
- * @param u8txenpin pin for txen RS-485 (=0 means USB/RS232C mode)
- * @ingroup setup
- * @overload Modbus::Modbus(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin)
- * @overload Modbus::Modbus()
- */
-Modbus::Modbus(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin) {
-  init(u8id, u8serno, u8txenpin, 0);
-}
-
-/**
- * @brief
- * Full constructor for a Master/Slave through USB/RS232C/RS485
- * It needs a pin for flow control only for RS485 mode
- *
- * @param u8id   node address 0=master, 1..247=slave
- * @param u8serno  serial port used 0..3
- * @param u8txenpin pin for txen RS-485 (=0 means USB/RS232C mode)
- * @param u8rxenpin pin for rxen RS-485 (=0 means USB/RS232C mode)
- * @ingroup setup
- * @overload Modbus::Modbus(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin, uint8_t u8rxenpin)
- * @overload Modbus::Modbus()
- */
-Modbus::Modbus(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin, uint8_t u8rxenpin) {
-  init(u8id, u8serno, u8txenpin, u8rxenpin);
+  this->u8id = 0;
+  this->u8serno = 1;
+  this->u16timeOut = 1000;
 }
 
 /**
@@ -98,12 +52,7 @@ void Modbus::begin(long u32speed, long configuration) {
 
   // port->begin(u32speed, u8config);
   port->begin(u32speed, configuration);
-  if (u8txenpin > 1 && u8rxenpin > 1) { // pin 0 & pin 1 are reserved for RX/TX
-    // return RS485 transceiver to transmit mode
-    pinMode(u8txenpin, OUTPUT);
-    pinMode(u8rxenpin, OUTPUT);
-    rxTxMode(RXEN);
-  }
+  rxTxMode(RXEN);
 
   port->flush();
   u8lastRec = u8BufferSize = 0;
@@ -623,14 +572,6 @@ int8_t Modbus::poll( uint16_t *regs, uint16_t u16size ) {
 
 /* _____PRIVATE FUNCTIONS_____________________________________________________ */
 
-void Modbus::init(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin, uint8_t u8rxenpin) {
-  this->u8id = u8id;
-  this->u8serno = (u8serno > 3) ? 0 : u8serno;
-  this->u8txenpin = u8txenpin;
-  this->u8rxenpin = u8rxenpin;
-  this->u16timeOut = 1000;
-}
-
 /**
  * @brief
  * This method moves Serial buffer data to the Modbus au8Buffer.
@@ -642,7 +583,7 @@ int8_t Modbus::getRxBuffer() {
 
   boolean bBuffOverflow = false;
 
-  if (u8txenpin > 1 && u8rxenpin > 1) rxTxMode(RXEN);
+  rxTxMode(RXEN);
 
   u8BufferSize = 0;
   #ifdef LOGGING
@@ -686,8 +627,7 @@ int8_t Modbus::getRxBuffer() {
 /**
  * @brief
  * This method transmits au8Buffer to Serial line.
- * Only if u8txenpin != 0, there is a flow handling in order to keep
- * the RS485 transceiver in output state as long as the message is being sent.
+ * Change to TXEN in order to send, then change back
  * This is done with UCSRxA register.
  * The CRC is appended to the buffer before starting to send it.
  *
@@ -719,14 +659,12 @@ void Modbus::sendTxBuffer() {
     Serial.println();
   #endif
 
-  if (u8txenpin > 1 && u8rxenpin > 1) {
-    #ifdef LOGGING
-      Serial.print("MODBUS> tx buffer set to transmit");
-      Serial.println();
-    #endif
-    rxTxMode(TXEN);
-    delayMicroseconds(100);
-  }
+  #ifdef LOGGING
+    Serial.print("MODBUS> tx buffer set to transmit");
+    Serial.println();
+  #endif
+  rxTxMode(TXEN);
+  delayMicroseconds(100);
 
   // transfer buffer to serial line
   port->write( au8Buffer, u8BufferSize );
@@ -734,15 +672,13 @@ void Modbus::sendTxBuffer() {
   // keep RS485 transceiver in transmit mode as long as sending
   port->flush();	//waits for transmittion to complete before returning
 
-  if (u8txenpin > 1 && u8rxenpin > 1) {
+  // return RS485 transceiver to receive mode
+  rxTxMode(RXEN);
+  #ifdef LOGGING
+    Serial.print("MODBUS> tx buffer switch back to rx mode");
+    Serial.println();
+  #endif
 
-    // return RS485 transceiver to receive mode
-    rxTxMode(RXEN);
-    #ifdef LOGGING
-      Serial.print("MODBUS> tx buffer switch back to rx mode");
-      Serial.println();
-    #endif
-  }
   //port->flush();
   u8BufferSize = 0;
 
@@ -1192,7 +1128,6 @@ int8_t Modbus::process_FC15( uint16_t *regs, uint16_t u16size ) {
       u8bitsno = 0;
       u8frameByte++;
     }
-    
   }
 
   // send outcoming message
@@ -1241,15 +1176,15 @@ int8_t Modbus::process_FC16( uint16_t *regs, uint16_t u16size ) {
 // this switches between RXEN (0) and TXEN (1) modes
 void Modbus::rxTxMode( uint8_t mode ) {
   if (mode == RXEN) {
-    if (u8txenpin > 1) digitalWrite( u8txenpin, LOW );
-    if (u8txenpin > 1) digitalWrite( u8rxenpin, LOW );
+    pins.digWrite(PIN_RS_RXEN, LOW);
+    pins.digWrite(PIN_RS_TXEN, LOW);
     #ifdef LOGGING
       Serial.print("MODBUS> Changing to RX mode.");
       Serial.println();
     #endif
   } else {
-    if (u8txenpin > 1) digitalWrite( u8txenpin, HIGH );
-    if (u8txenpin > 1) digitalWrite( u8rxenpin, HIGH ); // always leave this pin low so its always receiving
+    pins.digWrite(PIN_RS_RXEN, HIGH);
+    pins.digWrite(PIN_RS_TXEN, HIGH);
     #ifdef LOGGING
       Serial.print("MODBUS> Changing to TX mode.");
       Serial.println();
@@ -1257,38 +1192,3 @@ void Modbus::rxTxMode( uint8_t mode ) {
   }
   return;
 };
-
-bool Modbus::selfTest() {
-  Modbus::rxTxMode(RXEN);
-  while (port->available())
-    port->read();
-
-  // digitalWrite(u8txenpin, HIGH);
-  Modbus::rxTxMode(TXEN);
-  port->print("ALTRAC");
-  port->flush();
-  Modbus::rxTxMode(RXEN);
-  delay(100);
-  bool result = true;
-  Serial.print((char)port->peek());
-  if (port->read() != 'A')
-    result = false;
-  Serial.print((char)port->peek());
-  if (port->read() != 'L')
-    result = false;
-  Serial.print((char)port->peek());
-  if (port->read() != 'T')
-    result = false;
-  Serial.print((char)port->peek());
-  if (port->read() != 'R')
-    result = false;
-  Serial.print((char)port->peek());
-  if (port->read() != 'A')
-    result = false;
-  Serial.print((char)port->peek());
-  if (port->read() != 'C')
-    result = false;
-
-  // Modbus::rxTxMode(RXEN);
-  return result;
-}
