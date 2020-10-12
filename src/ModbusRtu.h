@@ -152,7 +152,7 @@ const unsigned char fctsupported[] = {
 };
 
 #define T35  5
-#define  MAX_BUFFER  255	//!< maximum size for the communication buffer in bytes
+#define MAX_BUFFER  255	//!< maximum size for the communication buffer in bytes
 
 #define RXEN 0
 #define TXEN 1

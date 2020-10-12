@@ -1,7 +1,6 @@
 // ModbusRtu.cpp
 
 #include "ModbusRtu.h"
-#include "Serial2/Serial2.h"
 #include "application.h"
 #include "PinControl.h"
 
@@ -107,7 +106,7 @@ void Modbus::setTimeOut( uint16_t u16timeOut) {
  * @ingroup loop
  */
 boolean Modbus::getTimeOutState() {
-  return (millis() > u32timeOut);
+  return ((unsigned long)(millis() - (unsigned long)u16timeOut) > u32timeOut);
 }
 
 /**
@@ -307,7 +306,9 @@ int8_t Modbus::poll() {
   // check if there is any incoming frame
   uint8_t u8current = port->available();
 
-  if (millis() > u32timeOut) {
+  // check if we've gone over our timeout
+  if ((unsigned long)(millis() - (unsigned long)u16timeOut) > u32timeOut)
+  {
     u8state = COM_IDLE;
     u8lastError = NO_REPLY;
     u16errCnt++;
@@ -315,15 +316,20 @@ int8_t Modbus::poll() {
     return 0;
   }
 
-  if (u8current == 0) return 0;
+  // if we have not received any data, don't do anything
+  if (u8current == 0)
+    return 0;
 
-  // check T35 after frame end or still no frame end
+  // check if we've received any new bytes
+  // if we have, allow for some time between receipts
   if (u8current != u8lastRec) {
     u8lastRec = u8current;
     u32time = millis() + T35;
     return 0;
   }
-  if (millis() < u32time) return 0;
+  // return if we are still waiting for next byte
+  if ((unsigned long)(millis() - (unsigned long)T35) < u32time)
+    return 0;
 
   // transfer Serial buffer frame to auBuffer
   u8lastRec = 0;
@@ -457,13 +463,17 @@ int8_t Modbus::poll( uint16_t *regs, uint16_t u16size ) {
   uint8_t u8current = port->available();
   if (u8current == 0) return 0;
 
-  // check T35 after frame end or still no frame end
-  if (u8current != u8lastRec) {
+  // check if we've received any new bytes
+  // if we have, allow for some time between receipts
+  if (u8current != u8lastRec)
+  {
     u8lastRec = u8current;
     u32time = millis() + T35;
     return 0;
   }
-  if (millis() < u32time) return 0;
+  // return if we are still waiting for next byte
+  if ((unsigned long)(millis() - (unsigned long)T35) < u32time)
+    return 0;
 
   u8lastRec = 0;
   int8_t i8state = getRxBuffer();
@@ -484,7 +494,7 @@ int8_t Modbus::poll( uint16_t *regs, uint16_t u16size ) {
     return u8exception;
   }
 
-  u32timeOut = millis() + long(u16timeOut);
+  u32timeOut = millis();
   u8lastError = 0;
 
   // process message
@@ -682,7 +692,7 @@ void Modbus::sendTxBuffer() {
   u8BufferSize = 0;
 
   // set time-out for master
-  u32timeOut = millis() + (unsigned long) u16timeOut;
+  u32timeOut = millis();
 
   // increase message counter
   u16OutCnt++;
