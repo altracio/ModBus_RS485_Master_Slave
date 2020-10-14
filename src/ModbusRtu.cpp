@@ -306,8 +306,8 @@ int8_t Modbus::poll() {
   // check if there is any incoming frame
   uint8_t u8current = port->available();
 
-  // check if we've gone over our timeout
-  if ((unsigned long)(millis() - (unsigned long)u16timeOut) > u32timeOut)
+  // if there are no bytes available, check if we've gone over our timeout
+  if (u8current == 0 && (unsigned long)(millis() - u32timeOut) > (unsigned long)u16timeOut)
   {
     u8state = COM_IDLE;
     u8lastError = NO_REPLY;
@@ -324,11 +324,11 @@ int8_t Modbus::poll() {
   // if we have, allow for some time between receipts
   if (u8current != u8lastRec) {
     u8lastRec = u8current;
-    u32time = millis() + T35;
+    u32time = millis();
     return 0;
   }
   // return if we are still waiting for next byte
-  if ((unsigned long)(millis() - (unsigned long)T35) < u32time)
+  if ((unsigned long)(millis() - u32time) < (unsigned long)T35)
     return 0;
 
   // transfer Serial buffer frame to auBuffer
@@ -468,11 +468,11 @@ int8_t Modbus::poll( uint16_t *regs, uint16_t u16size ) {
   if (u8current != u8lastRec)
   {
     u8lastRec = u8current;
-    u32time = millis() + T35;
+    u32time = millis();
     return 0;
   }
   // return if we are still waiting for next byte
-  if ((unsigned long)(millis() - (unsigned long)T35) < u32time)
+  if ((unsigned long)(millis() - u32time) <  (unsigned long)T35)
     return 0;
 
   u8lastRec = 0;
