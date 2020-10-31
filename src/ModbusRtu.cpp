@@ -362,7 +362,7 @@ int8_t Modbus::poll() {
     u8state = COM_IDLE;
     u8lastError = NO_REPLY;
     u16errCnt++;
-    logModbusRtu.warn("NORPLY");
+    logModbusRtu.info("NORPLY");
     return 0;
   }
 
