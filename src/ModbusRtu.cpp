@@ -3,6 +3,7 @@
 #include "ModbusRtu.h"
 #include "Serial2/Serial2.h"
 #include "application.h"
+#include "globals.h"
 
 // #define LOGGING // to see what is happening
 // create logging buckets for temp
