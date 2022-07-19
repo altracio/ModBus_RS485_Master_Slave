@@ -203,7 +203,7 @@ private:
 
 public:
   Modbus();
-  Modbus(USARTSerial* serial);
+  Modbus(uint8_t u8id, USARTSerial* serial);
   Modbus(uint8_t u8id, uint8_t u8serno);
   Modbus(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin);
   Modbus(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin, uint8_t u8rxenpin);
