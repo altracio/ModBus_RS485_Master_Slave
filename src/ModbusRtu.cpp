@@ -22,7 +22,11 @@
  * @ingroup setup
  */
 Modbus::Modbus() {
-  init(0, 0, 0, 0);
+  init(0, 0, 0, 0, nullptr);
+}
+
+Modbus::Modbus(uint8_t u8id, USARTSerial* serial) {
+    init(u8id, 0, 0, 0, serial);
 }
 
 /**
@@ -36,7 +40,7 @@ Modbus::Modbus() {
  * @overload Modbus::Modbus()
  */
 Modbus::Modbus(uint8_t u8id, uint8_t u8serno) {
-  init(u8id, u8serno, 0, 0);
+  init(u8id, u8serno, 0, 0, nullptr);
 }
 
 /**
@@ -52,7 +56,7 @@ Modbus::Modbus(uint8_t u8id, uint8_t u8serno) {
  * @overload Modbus::Modbus()
  */
 Modbus::Modbus(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin) {
-  init(u8id, u8serno, u8txenpin, 0);
+  init(u8id, u8serno, u8txenpin, 0, nullptr);
 }
 
 /**
@@ -69,7 +73,7 @@ Modbus::Modbus(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin) {
  * @overload Modbus::Modbus()
  */
 Modbus::Modbus(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin, uint8_t u8rxenpin) {
-  init(u8id, u8serno, u8txenpin, u8rxenpin);
+  init(u8id, u8serno, u8txenpin, u8rxenpin, nullptr);
 }
 
 /**
@@ -86,15 +90,17 @@ Modbus::Modbus(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin, uint8_t u8rxenp
  */
 void Modbus::begin(long u32speed, long configuration) {
 
-  switch( u8serno ) {
-  case 1:
-    port = &Serial1;
-    break;
+  if (port == nullptr) {
+    switch( u8serno ) {
+    case 1:
+      port = &Serial1;
+      break;
 
-  case 0:
-  default:
-    port = &Serial1;
-    break;
+    case 0:
+    default:
+      port = &Serial1;
+      break;
+    }
   }
 
   // port->begin(u32speed, u8config);
@@ -623,12 +629,13 @@ int8_t Modbus::poll( uint16_t *regs, uint16_t u16size ) {
 
 /* _____PRIVATE FUNCTIONS_____________________________________________________ */
 
-void Modbus::init(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin, uint8_t u8rxenpin) {
+void Modbus::init(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin, uint8_t u8rxenpin, USARTSerial* serial) {
   this->u8id = u8id;
   this->u8serno = (u8serno > 3) ? 0 : u8serno;
   this->u8txenpin = u8txenpin;
   this->u8rxenpin = u8rxenpin;
   this->u16timeOut = 1000;
+  this->port = serial;
 }
 
 /**
