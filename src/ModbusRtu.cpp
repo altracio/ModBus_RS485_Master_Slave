@@ -5,7 +5,9 @@
 #include "application.h"
 #include "globals.h"
 
-// #define LOGGING // to see what is happening
+// #define DEBUG_LOG
+
+#define LOGGING // to see what is happening
 // create logging buckets for temp
 #ifdef DEBUG_LOG
   Logger logModbusRtu("rtu");
@@ -25,9 +27,15 @@ Modbus::Modbus() {
   init(0, 0, 0, 0, nullptr);
 }
 
+#if (PLATFORM_ID == PLATFORM_BORON)
+Modbus::Modbus(uint8_t u8id, SerialExpanderUart* serial) {
+  init(u8id, 0, 0, 0, serial);
+}
+#else
 Modbus::Modbus(uint8_t u8id, USARTSerial* serial) {
   init(u8id, 0, 0, 0, serial);
 }
+#endif
 
 /**
  * @brief
@@ -90,6 +98,7 @@ Modbus::Modbus(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin, uint8_t u8rxenp
  */
 void Modbus::begin(long u32speed, long configuration) {
 
+#if (PLATFORM_ID != PLATFORM_BORON)
   if (port == nullptr) {
     switch( u8serno ) {
     case 1:
@@ -102,9 +111,10 @@ void Modbus::begin(long u32speed, long configuration) {
       break;
     }
   }
+#endif
 
-  // port->begin(u32speed, u8config);
-  port->begin(u32speed, configuration);
+  port->begin(u32speed, 8, 0, 1);
+
   if (u8txenpin > 1 && u8rxenpin > 1) { // pin 0 & pin 1 are reserved for RX/TX
     // return RS485 transceiver to transmit mode
     pinMode(u8txenpin, OUTPUT);
@@ -240,6 +250,7 @@ uint8_t Modbus::getLastError() {
  * @todo finish function 15
  */
 int8_t Modbus::query( modbus_t telegram ) {
+  port->flush();
   // empty rx buffer
   while(port->available()) { port->read(); }
   #ifdef LOGGING
@@ -343,6 +354,8 @@ int8_t Modbus::query( modbus_t telegram ) {
     Serial.print("MODBUS> Query: tx buffer sent");
     Serial.println();
   #endif
+  port->flush();
+
   u8state = COM_WAITING;
   return 0;
 }
@@ -629,6 +642,16 @@ int8_t Modbus::poll( uint16_t *regs, uint16_t u16size ) {
 
 /* _____PRIVATE FUNCTIONS_____________________________________________________ */
 
+#if (PLATFORM_ID == PLATFORM_BORON)
+void Modbus::init(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin, uint8_t u8rxenpin, SerialExpanderUart* serial) {
+  this->u8id = u8id;
+  this->u8serno = (u8serno > 3) ? 0 : u8serno;
+  this->u8txenpin = u8txenpin;
+  this->u8rxenpin = u8rxenpin;
+  this->u16timeOut = 1000;
+  this->port = serial;
+}
+#else
 void Modbus::init(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin, uint8_t u8rxenpin, USARTSerial* serial) {
   this->u8id = u8id;
   this->u8serno = (u8serno > 3) ? 0 : u8serno;
@@ -636,6 +659,7 @@ void Modbus::init(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin, uint8_t u8rx
   this->u8rxenpin = u8rxenpin;
   this->u16timeOut = 1000;
 }
+#endif
 
 /**
  * @brief
@@ -1246,6 +1270,9 @@ int8_t Modbus::process_FC16( uint16_t *regs, uint16_t u16size ) {
 
 // this switches between RXEN (0) and TXEN (1) modes
 void Modbus::rxTxMode( uint8_t mode ) {
+#if (PLATFORM_ID == PLATFORM_BORON)
+  port->controlRTS(mode == RXEN ? 0 : 1);
+#else
   if (mode == RXEN) {
     if (u8txenpin > 1) digitalWrite( u8txenpin, LOW );
     if (u8txenpin > 1) digitalWrite( u8rxenpin, LOW );
@@ -1261,6 +1288,7 @@ void Modbus::rxTxMode( uint8_t mode ) {
       Serial.println();
     #endif
   }
+#endif
   return;
 };
 

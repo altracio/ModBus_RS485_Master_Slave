@@ -60,6 +60,10 @@
  #warning "*** You are building with the Photon as a target ***"
 #endif
 
+#if (PLATFORM_ID == PLATFORM_BORON)
+#include "serial-expander-uart.h"
+#endif
+
 /**
  * @struct modbus_t
  * @brief
@@ -165,8 +169,8 @@ const unsigned char fctsupported[] = {
  */
 class Modbus {
 private:
-#if (PLATFORM_ID == 0)
-  USARTSerial *port; //!< Pointer to Serial class object
+#if (PLATFORM_ID == PLATFORM_BORON)
+  SerialExpanderUart *port; //!< Pointer to Serial class object
 #else
   USARTSerial *port; //!< Pointer to Serial class object
 #endif
@@ -185,7 +189,11 @@ private:
   uint32_t u32time, u32timeOut;
   uint16_t u16regsize;
 
+#if (PLATFORM_ID == PLATFORM_BORON)
+  void init(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin, uint8_t u8rxenpin, SerialExpanderUart* serial);
+#else
   void init(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin, uint8_t u8rxenpin, USARTSerial* serial);
+#endif
   void sendTxBuffer();
   int8_t getRxBuffer();
   uint16_t calcCRC(uint8_t u8length);
@@ -203,7 +211,11 @@ private:
 
 public:
   Modbus();
+#if (PLATFORM_ID == PLATFORM_BORON)
+  Modbus(uint8_t u8id, SerialExpanderUart* serial);
+#else
   Modbus(uint8_t u8id, USARTSerial* serial);
+#endif
   Modbus(uint8_t u8id, uint8_t u8serno);
   Modbus(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin);
   Modbus(uint8_t u8id, uint8_t u8serno, uint8_t u8txenpin, uint8_t u8rxenpin);
