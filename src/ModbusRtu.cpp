@@ -908,7 +908,7 @@ void Modbus::buildException( uint8_t u8exception ) {
  * TODO: finish its implementation
  */
 void Modbus::get_FC1() {
-  uint8_t u8byte, i;
+  uint8_t u8byte;
   u8byte = 3;
 
   #ifdef LOGGING
@@ -1017,8 +1017,8 @@ int8_t Modbus::process_FC3( uint16_t *regs, uint16_t u16size ) {
 
   uint16_t u16StartAdd = word( au8Buffer[ ADD_HI ], au8Buffer[ ADD_LO ] );
   uint16_t u16regsno = word( au8Buffer[ NB_HI ], au8Buffer[ NB_LO ] );
-  uint8_t u8CopyBufferSize;
-  uint16_t i;
+  uint8_t u8CopyBufferSize = 0;
+  uint16_t i = 0;
 
   Serial.printlnf(" %u %u %u %u", u16StartAdd, u16regsno, u8CopyBufferSize, i);
 
@@ -1156,7 +1156,6 @@ int8_t Modbus::process_FC15( uint16_t *regs, uint16_t u16size ) {
  * @ingroup register
  */
 int8_t Modbus::process_FC16( uint16_t *regs, uint16_t u16size ) {
-  uint8_t u8func = au8Buffer[ FUNC ];  // get the original FUNC code
   uint16_t u16StartAdd = au8Buffer[ ADD_HI ] << 8 | au8Buffer[ ADD_LO ];
   uint8_t u8regsno = au8Buffer[ NB_HI ] << 8 | au8Buffer[ NB_LO ];
   uint8_t u8CopyBufferSize;
