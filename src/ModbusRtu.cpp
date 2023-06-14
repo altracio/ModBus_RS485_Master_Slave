@@ -7,7 +7,7 @@
 
 // #define DEBUG_LOG
 
-#define LOGGING // to see what is happening
+// #define LOGGING // to see what is happening
 // create logging buckets for temp
 #ifdef DEBUG_LOG
   Logger logModbusRtu("rtu");
